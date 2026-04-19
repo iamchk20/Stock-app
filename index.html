@@ -1,78 +1,709 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>주식 보유관리 앱</title>
-<link rel="manifest" href="manifest.json">
-<style>
-body{font-family:sans-serif;background:#f4f6fb;padding:15px}
-.card{background:white;padding:15px;border-radius:12px;margin-bottom:10px}
-input,button{padding:8px;margin:5px}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>주식 보유관리 앱</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#111827" />
+  <style>
+    :root{
+      --bg:#f3f6fb;
+      --card:#ffffff;
+      --ink:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --navy:#111827;
+      --green:#15803d;
+      --red:#b91c1c;
+      --blue:#2563eb;
+      --soft:#f8fafc;
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{
+      margin:0;padding:0;background:var(--bg);color:var(--ink);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;
+    }
+    .wrap{max-width:920px;margin:0 auto;padding:16px}
+    .hero{
+      background:linear-gradient(135deg,#0f172a,#1f2937);
+      color:#fff;border-radius:22px;padding:18px 16px;margin-bottom:14px;
+    }
+    .hero h1{margin:0 0 6px;font-size:28px}
+    .hero p{margin:0;color:#d1d5db;font-size:14px;line-height:1.5}
+    .stats{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;
+    }
+    .stat,.card{
+      background:var(--card);border-radius:18px;padding:14px;
+      box-shadow:0 8px 24px rgba(15,23,42,.06);
+    }
+    .stat .k{font-size:12px;color:var(--muted)}
+    .stat .v{font-size:24px;font-weight:800;margin-top:6px;line-height:1.2}
+    .tabs{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;
+    }
+    .tab{
+      border:none;background:#fff;color:var(--ink);border-radius:14px;min-height:46px;
+      font-size:15px;font-weight:800;cursor:pointer;
+    }
+    .tab.active{background:var(--navy);color:#fff}
+    .page{display:none}
+    .page.active{display:block}
+    .title{font-size:19px;font-weight:800;margin:0 0 10px}
+    .sub{font-size:13px;color:var(--muted);line-height:1.5}
+    .input-grid{
+      display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;
+    }
+    label{display:block;font-size:12px;color:var(--muted);font-weight:700;margin:0 0 6px}
+    input,select,button{
+      font:inherit;
+    }
+    input,select{
+      width:100%;min-height:48px;padding:12px 14px;border:1px solid #dbe2ea;
+      border-radius:14px;background:#fff;color:var(--ink);
+    }
+    .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .btn{
+      flex:1 1 auto;min-height:48px;border:none;border-radius:14px;font-weight:800;cursor:pointer;
+      background:var(--navy);color:#fff;
+    }
+    .btn.secondary{background:#e5e7eb;color:#111827}
+    .btn.blue{background:var(--blue)}
+    .ticker-card,.rank-item{
+      background:#fff;border:1px solid #edf1f5;border-radius:16px;padding:12px;margin-top:10px;
+    }
+    .row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+    .name{font-size:18px;font-weight:800}
+    .muted{font-size:13px;color:var(--muted);margin-top:4px}
+    .big{font-size:22px;font-weight:900}
+    .pill{
+      display:inline-block;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:800;
+    }
+    .pill.buy{background:#dcfce7;color:#166534}
+    .pill.sell{background:#fee2e2;color:#991b1b}
+    .pill.warn{background:#fef3c7;color:#92400e}
+    .green{color:var(--green);font-weight:800}
+    .red{color:var(--red);font-weight:800}
+    .mini-grid{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;
+    }
+    .mini{
+      background:var(--soft);border-radius:14px;padding:10px;
+    }
+    .mini .k{font-size:12px;color:var(--muted)}
+    .mini .v{font-size:16px;font-weight:800;margin-top:4px}
+    .table-wrap{
+      overflow:auto;border:1px solid var(--line);border-radius:14px;margin-top:10px;background:#fff;
+    }
+    table{width:100%;border-collapse:collapse;min-width:680px}
+    th,td{
+      padding:10px;border-bottom:1px solid var(--line);font-size:13px;text-align:left;
+    }
+    th{background:#f9fafb;color:#4b5563}
+    .r{text-align:right}
+    .tiny-row{display:flex;gap:6px;margin-top:10px}
+    .tiny{
+      flex:1;min-height:38px;border:none;border-radius:12px;background:#e5e7eb;
+      color:#111827;font-weight:700;cursor:pointer;
+    }
+    .empty{font-size:14px;color:var(--muted)}
+    .section-gap{margin-top:12px}
+    @media (max-width: 760px){
+      .stats,.tabs,.input-grid,.mini-grid{grid-template-columns:1fr}
+      .hero h1{font-size:24px}
+    }
+  </style>
 </head>
 <body>
+  <div class="wrap">
+    <div class="hero">
+      <h1>📊 주식 보유관리 앱</h1>
+      <p>매수·매도 기록, LIFO 기준 차감, D+ 보유일, 종목 순위, lot 순위, 평균단가, 실현손익까지 한 번에 관리합니다.</p>
+    </div>
 
-<h2>📊 주식 보유관리 앱</h2>
+    <div class="stats">
+      <div class="stat">
+        <div class="k">현재 보유 종목 수</div>
+        <div class="v" id="statTickerCount">0</div>
+      </div>
+      <div class="stat">
+        <div class="k">현재 보유 수량</div>
+        <div class="v" id="statQty">0주</div>
+      </div>
+      <div class="stat">
+        <div class="k">가장 오래 보유 중</div>
+        <div class="v" id="statLongest">-</div>
+      </div>
+      <div class="stat">
+        <div class="k">누적 실현손익</div>
+        <div class="v" id="statRealized">0원</div>
+      </div>
+    </div>
 
-<div class="card">
-<input id="ticker" placeholder="종목">
-<input id="date" type="date">
-<input id="price" type="number" placeholder="가격">
-<input id="qty" type="number" placeholder="수량">
-<button onclick="buy()">매수</button>
-<button onclick="sell()">매도</button>
-</div>
+    <div class="tabs">
+      <button class="tab active" data-page="add" type="button">기록 추가</button>
+      <button class="tab" data-page="dashboard" type="button">보유 현황</button>
+      <button class="tab" data-page="ranking" type="button">보유 순위</button>
+      <button class="tab" data-page="history" type="button">전체 기록</button>
+    </div>
 
-<div class="card">
-<h3>보유 현황</h3>
-<div id="list"></div>
-</div>
+    <div class="page active" id="page-add">
+      <div class="card">
+        <div class="title">매수 / 매도 기록 입력</div>
+        <div class="sub">매도는 최근 매수 lot부터 차감하는 LIFO 방식입니다. 그래서 남아 있는 lot의 보유기간이 정확하게 계산됩니다.</div>
 
-<script>
-let data = JSON.parse(localStorage.getItem("stock")||"[]");
-document.getElementById("date").value=new Date().toISOString().slice(0,10);
+        <div class="input-grid">
+          <div>
+            <label for="txType">구분</label>
+            <select id="txType">
+              <option value="buy">매수</option>
+              <option value="sell">매도</option>
+            </select>
+          </div>
 
-function save(){localStorage.setItem("stock",JSON.stringify(data));}
+          <div>
+            <label for="txTicker">종목명 / 티커</label>
+            <input id="txTicker" placeholder="예: SK하이닉스 / NVDA" />
+          </div>
 
-function days(d){return Math.floor((new Date()-new Date(d))/(1000*60*60*24));}
+          <div>
+            <label for="txDate">날짜</label>
+            <input id="txDate" type="date" />
+          </div>
 
-function buy(){
-let t=ticker.value;
-let d=date.value;
-let p=+price.value;
-let q=+qty.value;
-data.push({type:"buy",t,d,p,q});
-save();render();
-}
+          <div>
+            <label for="txPrice">가격</label>
+            <input id="txPrice" type="number" placeholder="가격" />
+          </div>
 
-function sell(){
-let t=ticker.value;
-let p=+price.value;
-let q=+qty.value;
+          <div style="grid-column:1 / -1">
+            <label for="txQty">수량</label>
+            <input id="txQty" type="number" placeholder="수량" />
+          </div>
+        </div>
 
-for(let i=data.length-1;i>=0&&q>0;i--){
-let x=data[i];
-if(x.type=="buy"&&x.t==t&&x.q>0){
-let used=Math.min(x.q,q);
-x.q-=used;
-q-=used;
-}
-}
-save();render();
-}
+        <div class="btn-row">
+          <button class="btn" id="saveBtn" type="button">저장</button>
+          <button class="btn secondary" id="clearBtn" type="button">입력 초기화</button>
+          <button class="btn blue" id="sampleBtn" type="button">예시 데이터</button>
+        </div>
 
-function render(){
-let html="";
-data.forEach(x=>{
-if(x.q>0){
-html+=`${x.t} ${x.q}주 D+${days(x.d)}<br>`;
-}
-});
-list.innerHTML=html;
-}
-render();
-</script>
+        <div class="btn-row">
+          <button class="btn secondary" id="exportBtn" type="button">JSON 내보내기</button>
+          <label class="btn secondary" style="display:flex;align-items:center;justify-content:center">
+            JSON 불러오기
+            <input type="file" id="importFile" accept="application/json" style="display:none" />
+          </label>
+        </div>
+      </div>
+    </div>
 
+    <div class="page" id="page-dashboard">
+      <div class="card">
+        <div class="title">종목별 현재 보유 현황</div>
+        <div class="sub">남아 있는 매수 lot마다 오늘 기준 D+ 보유일이 자동 계산됩니다.</div>
+        <div id="dashboardList" class="section-gap"></div>
+      </div>
+    </div>
+
+    <div class="page" id="page-ranking">
+      <div class="card">
+        <div class="title">종목 순위 · 가장 오래 보유한 순</div>
+        <div id="tickerRanks" class="section-gap"></div>
+      </div>
+
+      <div class="card section-gap">
+        <div class="title">매수 lot 순위 · 실제 오래 가진 건 순</div>
+        <div id="lotRanks" class="section-gap"></div>
+      </div>
+    </div>
+
+    <div class="page" id="page-history">
+      <div class="card">
+        <div class="title">전체 거래 기록</div>
+        <div class="sub">매도 기록에는 평균 보유일과 실현손익이 표시됩니다.</div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>구분</th>
+                <th>종목</th>
+                <th>날짜</th>
+                <th class="r">가격</th>
+                <th class="r">수량</th>
+                <th class="r">보유일/손익</th>
+                <th class="r">관리</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    }
+
+    const KEY = "stock-holding-pro-v1";
+    let editingId = null;
+
+    function todayStr() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function num(v) {
+      return Number(v || 0);
+    }
+
+    function fmt(n) {
+      return new Intl.NumberFormat("ko-KR").format(Math.round(num(n)));
+    }
+
+    function won(n) {
+      return fmt(n) + "원";
+    }
+
+    function dPlus(days) {
+      return "D+" + days;
+    }
+
+    function diffDays(start, end = todayStr()) {
+      const a = new Date(start + "T00:00:00");
+      const b = new Date(end + "T00:00:00");
+      return Math.floor((b - a) / (1000 * 60 * 60 * 24));
+    }
+
+    function uid() {
+      return Date.now() + "-" + Math.random().toString(36).slice(2, 9);
+    }
+
+    function load() {
+      try {
+        return JSON.parse(localStorage.getItem(KEY) || "[]");
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function save(data) {
+      localStorage.setItem(KEY, JSON.stringify(data));
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, m => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#39;"
+      }[m]));
+    }
+
+    function sortTx(list) {
+      return [...list].sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        return (a.createdAt || 0) - (b.createdAt || 0);
+      });
+    }
+
+    function computeAll(raw) {
+      const tx = sortTx(raw);
+      const byTicker = {};
+      const historyRows = [];
+      let realized = 0;
+      let wins = 0;
+      let losses = 0;
+
+      for (const t of tx) {
+        const ticker = (t.ticker || "").trim().toUpperCase();
+        if (!ticker) continue;
+
+        if (!byTicker[ticker]) {
+          byTicker[ticker] = { ticker, buys: [], sells: [] };
+        }
+
+        const bucket = byTicker[ticker];
+
+        if (t.type === "buy") {
+          bucket.buys.push({
+            id: t.id,
+            date: t.date,
+            price: num(t.price),
+            qty: num(t.qty),
+            remainingQty: num(t.qty)
+          });
+
+          historyRows.push({
+            ...t,
+            ticker,
+            holdInfo: "-",
+            realizedInfo: null,
+            unmatchedQty: 0
+          });
+        } else {
+          let q = num(t.qty);
+          let sellProfit = 0;
+          const usedLots = [];
+
+          for (let i = bucket.buys.length - 1; i >= 0 && q > 0; i--) {
+            const lot = bucket.buys[i];
+            if (lot.remainingQty <= 0) continue;
+
+            const used = Math.min(lot.remainingQty, q);
+            lot.remainingQty -= used;
+            q -= used;
+
+            const holdDays = diffDays(lot.date, t.date);
+            const profit = (num(t.price) - lot.price) * used;
+            sellProfit += profit;
+
+            usedLots.push({
+              buyDate: lot.date,
+              usedQty: used,
+              holdDays,
+              profit
+            });
+          }
+
+          realized += sellProfit;
+          if (sellProfit > 0) wins++;
+          else if (sellProfit < 0) losses++;
+
+          bucket.sells.push({
+            id: t.id,
+            date: t.date,
+            price: num(t.price),
+            qty: num(t.qty),
+            sellProfit,
+            unmatchedQty: q,
+            usedLots
+          });
+
+          const avgHold = usedLots.length
+            ? Math.round(
+                usedLots.reduce((s, x) => s + x.holdDays * x.usedQty, 0) /
+                usedLots.reduce((s, x) => s + x.usedQty, 0)
+              )
+            : null;
+
+          historyRows.push({
+            ...t,
+            ticker,
+            holdInfo: avgHold === null ? "-" : dPlus(avgHold),
+            realizedInfo: sellProfit,
+            unmatchedQty: q
+          });
+        }
+      }
+
+      const summaries = Object.values(byTicker).map(bucket => {
+        const activeLots = bucket.buys
+          .filter(b => b.remainingQty > 0)
+          .map(l => ({
+            ...l,
+            holdDays: diffDays(l.date)
+          }))
+          .sort((a, b) => b.holdDays - a.holdDays);
+
+        const totalQty = activeLots.reduce((s, l) => s + l.remainingQty, 0);
+        const totalCost = activeLots.reduce((s, l) => s + l.remainingQty * l.price, 0);
+        const avgPrice = totalQty ? totalCost / totalQty : 0;
+        const longestHoldDays = activeLots.length ? activeLots[0].holdDays : 0;
+
+        return {
+          ticker: bucket.ticker,
+          totalQty,
+          avgPrice,
+          longestHoldDays,
+          totalBuyQty: bucket.buys.reduce((s, x) => s + x.qty, 0),
+          totalSellQty: bucket.sells.reduce((s, x) => s + x.qty, 0),
+          activeLots
+        };
+      }).sort((a, b) => a.ticker.localeCompare(b.ticker));
+
+      const lotRanks = summaries
+        .flatMap(s =>
+          s.activeLots.map(l => ({
+            ticker: s.ticker,
+            date: l.date,
+            remainingQty: l.remainingQty,
+            holdDays: l.holdDays,
+            price: l.price
+          }))
+        )
+        .sort((a, b) => b.holdDays - a.holdDays);
+
+      const tickerRanks = summaries
+        .filter(s => s.totalQty > 0)
+        .slice()
+        .sort((a, b) => b.longestHoldDays - a.longestHoldDays);
+
+      return { summaries, lotRanks, tickerRanks, realized, wins, losses, historyRows };
+    }
+
+    function render() {
+      const raw = load();
+      const data = computeAll(raw);
+
+      document.getElementById("statTickerCount").textContent =
+        data.summaries.filter(x => x.totalQty > 0).length;
+
+      document.getElementById("statQty").textContent =
+        fmt(data.summaries.reduce((s, x) => s + x.totalQty, 0)) + "주";
+
+      document.getElementById("statLongest").textContent =
+        data.lotRanks[0] ? dPlus(data.lotRanks[0].holdDays) + " · " + data.lotRanks[0].ticker : "-";
+
+      document.getElementById("statRealized").textContent = won(data.realized);
+
+      const dashboard = document.getElementById("dashboardList");
+      if (!data.summaries.length) {
+        dashboard.innerHTML = '<div class="empty">아직 기록이 없습니다.</div>';
+      } else {
+        dashboard.innerHTML = data.summaries.map(s => `
+          <div class="ticker-card">
+            <div class="row">
+              <div>
+                <div class="name">${s.ticker}</div>
+                <div class="muted">총매수 ${fmt(s.totalBuyQty)}주 · 총매도 ${fmt(s.totalSellQty)}주 · 현재보유 ${fmt(s.totalQty)}주</div>
+              </div>
+              <div class="big">${s.totalQty ? dPlus(s.longestHoldDays) : "-"}</div>
+            </div>
+
+            <div class="mini-grid">
+              <div class="mini"><div class="k">평균단가</div><div class="v">${won(s.avgPrice)}</div></div>
+              <div class="mini"><div class="k">현재 수량</div><div class="v">${fmt(s.totalQty)}주</div></div>
+              <div class="mini"><div class="k">남은 매수건</div><div class="v">${s.activeLots.length}건</div></div>
+              <div class="mini"><div class="k">최장 보유</div><div class="v">${s.totalQty ? dPlus(s.longestHoldDays) : "-"}</div></div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>매수일</th>
+                    <th class="r">매수가</th>
+                    <th class="r">남은수량</th>
+                    <th class="r">오늘 기준 보유일</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${
+                    s.activeLots.length
+                      ? s.activeLots.map(l => `
+                        <tr>
+                          <td>${l.date}</td>
+                          <td class="r">${won(l.price)}</td>
+                          <td class="r">${fmt(l.remainingQty)}주</td>
+                          <td class="r"><b>${dPlus(l.holdDays)}</b></td>
+                        </tr>
+                      `).join("")
+                      : '<tr><td colspan="4">현재 남아 있는 보유 lot가 없습니다.</td></tr>'
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      const tickerRanks = document.getElementById("tickerRanks");
+      tickerRanks.innerHTML = data.tickerRanks.length
+        ? data.tickerRanks.map((s, i) => `
+          <div class="rank-item">
+            <div>
+              <div class="muted">#${i + 1}</div>
+              <div class="name">${s.ticker}</div>
+              <div class="muted">보유 ${fmt(s.totalQty)}주 · 평균단가 ${won(s.avgPrice)}</div>
+            </div>
+            <div class="big">${dPlus(s.longestHoldDays)}</div>
+          </div>
+        `).join("")
+        : '<div class="empty">아직 기록이 없습니다.</div>';
+
+      const lotRanks = document.getElementById("lotRanks");
+      lotRanks.innerHTML = data.lotRanks.length
+        ? data.lotRanks.map((l, i) => `
+          <div class="rank-item">
+            <div>
+              <div class="muted">#${i + 1}</div>
+              <div class="name">${l.ticker}</div>
+              <div class="muted">${l.date} · 남은 ${fmt(l.remainingQty)}주 · 매수가 ${won(l.price)}</div>
+            </div>
+            <div class="big">${dPlus(l.holdDays)}</div>
+          </div>
+        `).join("")
+        : '<div class="empty">아직 기록이 없습니다.</div>';
+
+      const history = [...data.historyRows].sort((a, b) => {
+        if (a.date !== b.date) return b.date.localeCompare(a.date);
+        return (b.createdAt || 0) - (a.createdAt || 0);
+      });
+
+      const body = document.getElementById("historyBody");
+      body.innerHTML = history.length
+        ? history.map(h => `
+          <tr>
+            <td>
+              ${h.type === "buy" ? '<span class="pill buy">매수</span>' : '<span class="pill sell">매도</span>'}
+              ${h.unmatchedQty > 0 ? ' <span class="pill warn">초과</span>' : ''}
+            </td>
+            <td><b>${escapeHtml(h.ticker)}</b></td>
+            <td>${h.date}</td>
+            <td class="r">${won(h.price)}</td>
+            <td class="r">${fmt(h.qty)}주</td>
+            <td class="r">
+              ${
+                h.type === "buy"
+                  ? "-"
+                  : `${h.holdInfo} / <span class="${h.realizedInfo >= 0 ? "green" : "red"}">${won(h.realizedInfo)}</span>`
+              }
+            </td>
+            <td class="r">
+              <button class="tiny" type="button" onclick="editItem('${h.id}')">수정</button>
+              <button class="tiny" type="button" onclick="removeItem('${h.id}')">삭제</button>
+            </td>
+          </tr>
+        `).join("")
+        : '<tr><td colspan="7">아직 기록이 없습니다.</td></tr>';
+    }
+
+    function clearForm() {
+      editingId = null;
+      document.getElementById("txType").value = "buy";
+      document.getElementById("txTicker").value = "";
+      document.getElementById("txDate").value = todayStr();
+      document.getElementById("txPrice").value = "";
+      document.getElementById("txQty").value = "";
+    }
+
+    function saveForm() {
+      const type = document.getElementById("txType").value;
+      const ticker = document.getElementById("txTicker").value.trim().toUpperCase();
+      const date = document.getElementById("txDate").value;
+      const price = num(document.getElementById("txPrice").value);
+      const qty = num(document.getElementById("txQty").value);
+
+      if (!ticker || !date || !(price > 0) || !(qty > 0)) {
+        alert("구분, 종목, 날짜, 가격, 수량을 모두 입력해 주세요.");
+        return;
+      }
+
+      const raw = load();
+
+      if (editingId) {
+        const idx = raw.findIndex(x => x.id === editingId);
+        if (idx >= 0) {
+          raw[idx] = { ...raw[idx], type, ticker, date, price, qty };
+        }
+      } else {
+        raw.push({
+          id: uid(),
+          createdAt: Date.now(),
+          type,
+          ticker,
+          date,
+          price,
+          qty
+        });
+      }
+
+      save(raw);
+      clearForm();
+      render();
+      switchPage("dashboard");
+    }
+
+    function removeItem(id) {
+      const data = load().filter(x => x.id !== id);
+      save(data);
+      render();
+    }
+
+    function editItem(id) {
+      const item = load().find(x => x.id === id);
+      if (!item) return;
+
+      editingId = id;
+      document.getElementById("txType").value = item.type;
+      document.getElementById("txTicker").value = item.ticker;
+      document.getElementById("txDate").value = item.date;
+      document.getElementById("txPrice").value = item.price;
+      document.getElementById("txQty").value = item.qty;
+      switchPage("add");
+    }
+
+    function exportData() {
+      const blob = new Blob([JSON.stringify(load(), null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "stock-holding-data.json";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function importData(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(String(reader.result || "[]"));
+          if (!Array.isArray(data)) throw new Error();
+          save(data);
+          render();
+          switchPage("dashboard");
+          alert("불러오기 완료");
+        } catch (err) {
+          alert("JSON 파일 형식을 확인해 주세요.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function applySample() {
+      const now = Date.now();
+      const sample = [
+        { id: uid(), createdAt: now - 6000, type: "buy", ticker: "SK하이닉스", date: "2024-05-30", price: 10000, qty: 1 },
+        { id: uid(), createdAt: now - 5000, type: "buy", ticker: "SK하이닉스", date: "2025-12-31", price: 50000, qty: 30 },
+        { id: uid(), createdAt: now - 4000, type: "sell", ticker: "SK하이닉스", date: "2026-01-15", price: 55000, qty: 10 },
+        { id: uid(), createdAt: now - 3000, type: "buy", ticker: "NVDA", date: "2025-01-10", price: 820, qty: 5 },
+        { id: uid(), createdAt: now - 2000, type: "buy", ticker: "AAPL", date: "2026-03-01", price: 250000, qty: 2 },
+        { id: uid(), createdAt: now - 1000, type: "sell", ticker: "NVDA", date: "2026-04-01", price: 1000, qty: 2 }
+      ];
+
+      save(sample);
+      clearForm();
+      render();
+      switchPage("dashboard");
+    }
+
+    function switchPage(name) {
+      document.querySelectorAll(".tab").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.page === name);
+      });
+      document.querySelectorAll(".page").forEach(page => {
+        page.classList.toggle("active", page.id === "page-" + name);
+      });
+    }
+
+    document.querySelectorAll(".tab").forEach(btn => {
+      btn.addEventListener("click", () => switchPage(btn.dataset.page));
+    });
+
+    document.getElementById("saveBtn").addEventListener("click", saveForm);
+    document.getElementById("clearBtn").addEventListener("click", clearForm);
+    document.getElementById("sampleBtn").addEventListener("click", applySample);
+    document.getElementById("exportBtn").addEventListener("click", exportData);
+    document.getElementById("importFile").addEventListener("change", e => {
+      if (e.target.files && e.target.files[0]) importData(e.target.files[0]);
+    });
+
+    document.getElementById("txDate").value = todayStr();
+    render();
+  </script>
 </body>
 </html>
