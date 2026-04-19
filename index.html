@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
@@ -17,14 +17,16 @@
       --green:#15803d;
       --red:#b91c1c;
       --blue:#2563eb;
+      --amber:#b45309;
       --soft:#f8fafc;
+      --purple:#7c3aed;
     }
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     html,body{
       margin:0;padding:0;background:var(--bg);color:var(--ink);
       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;
     }
-    .wrap{max-width:920px;margin:0 auto;padding:16px}
+    .wrap{max-width:980px;margin:0 auto;padding:16px}
     .hero{
       background:linear-gradient(135deg,#0f172a,#1f2937);
       color:#fff;border-radius:22px;padding:18px 16px;margin-bottom:14px;
@@ -41,7 +43,7 @@
     .stat .k{font-size:12px;color:var(--muted)}
     .stat .v{font-size:24px;font-weight:800;margin-top:6px;line-height:1.2}
     .tabs{
-      display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;
+      display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px;
     }
     .tab{
       border:none;background:#fff;color:var(--ink);border-radius:14px;min-height:46px;
@@ -56,9 +58,7 @@
       display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;
     }
     label{display:block;font-size:12px;color:var(--muted);font-weight:700;margin:0 0 6px}
-    input,select,button{
-      font:inherit;
-    }
+    input,select,button{font:inherit}
     input,select{
       width:100%;min-height:48px;padding:12px 14px;border:1px solid #dbe2ea;
       border-radius:14px;background:#fff;color:var(--ink);
@@ -70,7 +70,9 @@
     }
     .btn.secondary{background:#e5e7eb;color:#111827}
     .btn.blue{background:var(--blue)}
-    .ticker-card,.rank-item{
+    .btn.purple{background:var(--purple)}
+    .btn.red{background:var(--red)}
+    .ticker-card,.rank-item,.summary-item{
       background:#fff;border:1px solid #edf1f5;border-radius:16px;padding:12px;margin-top:10px;
     }
     .row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
@@ -83,8 +85,11 @@
     .pill.buy{background:#dcfce7;color:#166534}
     .pill.sell{background:#fee2e2;color:#991b1b}
     .pill.warn{background:#fef3c7;color:#92400e}
+    .pill.blue{background:#dbeafe;color:#1d4ed8}
+    .pill.purple{background:#ede9fe;color:#6d28d9}
     .green{color:var(--green);font-weight:800}
     .red{color:var(--red);font-weight:800}
+    .amber{color:var(--amber);font-weight:800}
     .mini-grid{
       display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;
     }
@@ -96,7 +101,7 @@
     .table-wrap{
       overflow:auto;border:1px solid var(--line);border-radius:14px;margin-top:10px;background:#fff;
     }
-    table{width:100%;border-collapse:collapse;min-width:680px}
+    table{width:100%;border-collapse:collapse;min-width:780px}
     th,td{
       padding:10px;border-bottom:1px solid var(--line);font-size:13px;text-align:left;
     }
@@ -109,8 +114,13 @@
     }
     .empty{font-size:14px;color:var(--muted)}
     .section-gap{margin-top:12px}
+    .hold-short{color:var(--red);font-weight:800}
+    .hold-mid{color:var(--amber);font-weight:800}
+    .hold-long{color:var(--green);font-weight:800}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .settings-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
     @media (max-width: 760px){
-      .stats,.tabs,.input-grid,.mini-grid{grid-template-columns:1fr}
+      .stats,.tabs,.input-grid,.mini-grid,.grid-2,.settings-grid{grid-template-columns:1fr}
       .hero h1{font-size:24px}
     }
   </style>
@@ -119,7 +129,7 @@
   <div class="wrap">
     <div class="hero">
       <h1>📊 주식 보유관리 앱</h1>
-      <p>매수·매도 기록, LIFO 기준 차감, D+ 보유일, 종목 순위, lot 순위, 평균단가, 실현손익까지 한 번에 관리합니다.</p>
+      <p>매수·매도, LIFO, D+ 보유일, 평균단가, 실현/미실현 손익, 목표가/손절가, 종목/lot 순위, 월별 손익까지 한 번에 관리합니다.</p>
     </div>
 
     <div class="stats">
@@ -128,8 +138,8 @@
         <div class="v" id="statTickerCount">0</div>
       </div>
       <div class="stat">
-        <div class="k">현재 보유 수량</div>
-        <div class="v" id="statQty">0주</div>
+        <div class="k">현재 총손익</div>
+        <div class="v" id="statTotalPnl">0원</div>
       </div>
       <div class="stat">
         <div class="k">가장 오래 보유 중</div>
@@ -146,12 +156,13 @@
       <button class="tab" data-page="dashboard" type="button">보유 현황</button>
       <button class="tab" data-page="ranking" type="button">보유 순위</button>
       <button class="tab" data-page="history" type="button">전체 기록</button>
+      <button class="tab" data-page="monthly" type="button">월별 요약</button>
     </div>
 
     <div class="page active" id="page-add">
       <div class="card">
         <div class="title">매수 / 매도 기록 입력</div>
-        <div class="sub">매도는 최근 매수 lot부터 차감하는 LIFO 방식입니다. 그래서 남아 있는 lot의 보유기간이 정확하게 계산됩니다.</div>
+        <div class="sub">매도는 최근 매수 lot부터 차감하는 LIFO 방식입니다. 남아 있는 lot 기준으로 보유기간이 자동 계산됩니다.</div>
 
         <div class="input-grid">
           <div>
@@ -202,20 +213,34 @@
     <div class="page" id="page-dashboard">
       <div class="card">
         <div class="title">종목별 현재 보유 현황</div>
-        <div class="sub">남아 있는 매수 lot마다 오늘 기준 D+ 보유일이 자동 계산됩니다.</div>
+        <div class="sub">현재가, 목표가, 손절가를 넣으면 미실현손익과 상태가 즉시 반영됩니다.</div>
         <div id="dashboardList" class="section-gap"></div>
       </div>
     </div>
 
     <div class="page" id="page-ranking">
-      <div class="card">
-        <div class="title">종목 순위 · 가장 오래 보유한 순</div>
-        <div id="tickerRanks" class="section-gap"></div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="title">종목 순위 · 가장 오래 보유한 순</div>
+          <div id="tickerRanks" class="section-gap"></div>
+        </div>
+
+        <div class="card">
+          <div class="title">매수 lot 순위 · 실제 오래 가진 건 순</div>
+          <div id="lotRanks" class="section-gap"></div>
+        </div>
       </div>
 
-      <div class="card section-gap">
-        <div class="title">매수 lot 순위 · 실제 오래 가진 건 순</div>
-        <div id="lotRanks" class="section-gap"></div>
+      <div class="grid-2 section-gap">
+        <div class="card">
+          <div class="title">종목 순위 · 수익률 높은 순</div>
+          <div id="returnRanks" class="section-gap"></div>
+        </div>
+
+        <div class="card">
+          <div class="title">종목 순위 · 총손익 큰 순</div>
+          <div id="pnlRanks" class="section-gap"></div>
+        </div>
       </div>
     </div>
 
@@ -242,6 +267,14 @@
         </div>
       </div>
     </div>
+
+    <div class="page" id="page-monthly">
+      <div class="card">
+        <div class="title">월별 실현손익 요약</div>
+        <div class="sub">매도 기록 기준으로 월별 실현손익을 집계합니다.</div>
+        <div id="monthlySummary" class="section-gap"></div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -249,7 +282,8 @@
       navigator.serviceWorker.register("sw.js").catch(() => {});
     }
 
-    const KEY = "stock-holding-pro-v1";
+    const TX_KEY = "stock-holding-pro-v2";
+    const PREF_KEY = "stock-holding-pref-v2";
     let editingId = null;
 
     function todayStr() {
@@ -268,6 +302,10 @@
       return fmt(n) + "원";
     }
 
+    function pct(n) {
+      return (num(n)).toFixed(2) + "%";
+    }
+
     function dPlus(days) {
       return "D+" + days;
     }
@@ -282,16 +320,28 @@
       return Date.now() + "-" + Math.random().toString(36).slice(2, 9);
     }
 
-    function load() {
+    function loadTx() {
       try {
-        return JSON.parse(localStorage.getItem(KEY) || "[]");
+        return JSON.parse(localStorage.getItem(TX_KEY) || "[]");
       } catch (e) {
         return [];
       }
     }
 
-    function save(data) {
-      localStorage.setItem(KEY, JSON.stringify(data));
+    function saveTx(data) {
+      localStorage.setItem(TX_KEY, JSON.stringify(data));
+    }
+
+    function loadPref() {
+      try {
+        return JSON.parse(localStorage.getItem(PREF_KEY) || "{}");
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function savePref(data) {
+      localStorage.setItem(PREF_KEY, JSON.stringify(data));
     }
 
     function escapeHtml(s) {
@@ -311,13 +361,18 @@
       });
     }
 
-    function computeAll(raw) {
-      const tx = sortTx(raw);
+    function holdClass(days) {
+      if (days < 7) return "hold-short";
+      if (days < 30) return "hold-mid";
+      return "hold-long";
+    }
+
+    function computeAll(rawTx, prefMap) {
+      const tx = sortTx(rawTx);
       const byTicker = {};
       const historyRows = [];
+      const monthly = {};
       let realized = 0;
-      let wins = 0;
-      let losses = 0;
 
       for (const t of tx) {
         const ticker = (t.ticker || "").trim().toUpperCase();
@@ -371,8 +426,9 @@
           }
 
           realized += sellProfit;
-          if (sellProfit > 0) wins++;
-          else if (sellProfit < 0) losses++;
+
+          const monthKey = t.date.slice(0, 7);
+          monthly[monthKey] = (monthly[monthKey] || 0) + sellProfit;
 
           bucket.sells.push({
             id: t.id,
@@ -415,6 +471,25 @@
         const avgPrice = totalQty ? totalCost / totalQty : 0;
         const longestHoldDays = activeLots.length ? activeLots[0].holdDays : 0;
 
+        const pref = prefMap[bucket.ticker] || {};
+        const currentPrice = num(pref.currentPrice);
+        const targetPrice = num(pref.targetPrice);
+        const stopPrice = num(pref.stopPrice);
+
+        const marketValue = totalQty * currentPrice;
+        const unrealizedPnl = marketValue - totalCost;
+        const unrealizedRate = totalCost ? (unrealizedPnl / totalCost) * 100 : 0;
+
+        let status = "-";
+        let statusClass = "";
+        if (targetPrice > 0 && currentPrice >= targetPrice) {
+          status = "목표가 도달";
+          statusClass = "green";
+        } else if (stopPrice > 0 && currentPrice > 0 && currentPrice <= stopPrice) {
+          status = "손절 구간";
+          statusClass = "red";
+        }
+
         return {
           ticker: bucket.ticker,
           totalQty,
@@ -422,7 +497,16 @@
           longestHoldDays,
           totalBuyQty: bucket.buys.reduce((s, x) => s + x.qty, 0),
           totalSellQty: bucket.sells.reduce((s, x) => s + x.qty, 0),
-          activeLots
+          activeLots,
+          currentPrice,
+          targetPrice,
+          stopPrice,
+          marketValue,
+          unrealizedPnl,
+          unrealizedRate,
+          totalPnl: unrealizedPnl + bucket.sells.reduce((s, x) => s + x.sellProfit, 0),
+          status,
+          statusClass
         };
       }).sort((a, b) => a.ticker.localeCompare(b.ticker));
 
@@ -443,75 +527,135 @@
         .slice()
         .sort((a, b) => b.longestHoldDays - a.longestHoldDays);
 
-      return { summaries, lotRanks, tickerRanks, realized, wins, losses, historyRows };
+      const returnRanks = summaries
+        .filter(s => s.totalQty > 0 && s.currentPrice > 0)
+        .slice()
+        .sort((a, b) => b.unrealizedRate - a.unrealizedRate);
+
+      const pnlRanks = summaries
+        .filter(s => s.totalQty > 0 && s.currentPrice > 0)
+        .slice()
+        .sort((a, b) => b.unrealizedPnl - a.unrealizedPnl);
+
+      const monthlyRows = Object.entries(monthly)
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([month, pnl]) => ({ month, pnl }));
+
+      return {
+        summaries,
+        lotRanks,
+        tickerRanks,
+        returnRanks,
+        pnlRanks,
+        realized,
+        historyRows,
+        monthlyRows
+      };
     }
 
     function render() {
-      const raw = load();
-      const data = computeAll(raw);
+      const rawTx = loadTx();
+      const prefMap = loadPref();
+      const data = computeAll(rawTx, prefMap);
+
+      const totalCurrentPnl = data.summaries.reduce((s, x) => s + x.totalPnl, 0);
 
       document.getElementById("statTickerCount").textContent =
         data.summaries.filter(x => x.totalQty > 0).length;
 
-      document.getElementById("statQty").textContent =
-        fmt(data.summaries.reduce((s, x) => s + x.totalQty, 0)) + "주";
+      document.getElementById("statTotalPnl").innerHTML =
+        `<span class="${totalCurrentPnl >= 0 ? "green" : "red"}">${won(totalCurrentPnl)}</span>`;
 
       document.getElementById("statLongest").textContent =
         data.lotRanks[0] ? dPlus(data.lotRanks[0].holdDays) + " · " + data.lotRanks[0].ticker : "-";
 
-      document.getElementById("statRealized").textContent = won(data.realized);
+      document.getElementById("statRealized").innerHTML =
+        `<span class="${data.realized >= 0 ? "green" : "red"}">${won(data.realized)}</span>`;
 
+      renderDashboard(data.summaries);
+      renderRanks(data);
+      renderHistory(data.historyRows);
+      renderMonthly(data.monthlyRows);
+    }
+
+    function renderDashboard(summaries) {
       const dashboard = document.getElementById("dashboardList");
-      if (!data.summaries.length) {
+
+      if (!summaries.length) {
         dashboard.innerHTML = '<div class="empty">아직 기록이 없습니다.</div>';
-      } else {
-        dashboard.innerHTML = data.summaries.map(s => `
-          <div class="ticker-card">
-            <div class="row">
-              <div>
-                <div class="name">${s.ticker}</div>
-                <div class="muted">총매수 ${fmt(s.totalBuyQty)}주 · 총매도 ${fmt(s.totalSellQty)}주 · 현재보유 ${fmt(s.totalQty)}주</div>
-              </div>
-              <div class="big">${s.totalQty ? dPlus(s.longestHoldDays) : "-"}</div>
-            </div>
-
-            <div class="mini-grid">
-              <div class="mini"><div class="k">평균단가</div><div class="v">${won(s.avgPrice)}</div></div>
-              <div class="mini"><div class="k">현재 수량</div><div class="v">${fmt(s.totalQty)}주</div></div>
-              <div class="mini"><div class="k">남은 매수건</div><div class="v">${s.activeLots.length}건</div></div>
-              <div class="mini"><div class="k">최장 보유</div><div class="v">${s.totalQty ? dPlus(s.longestHoldDays) : "-"}</div></div>
-            </div>
-
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>매수일</th>
-                    <th class="r">매수가</th>
-                    <th class="r">남은수량</th>
-                    <th class="r">오늘 기준 보유일</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${
-                    s.activeLots.length
-                      ? s.activeLots.map(l => `
-                        <tr>
-                          <td>${l.date}</td>
-                          <td class="r">${won(l.price)}</td>
-                          <td class="r">${fmt(l.remainingQty)}주</td>
-                          <td class="r"><b>${dPlus(l.holdDays)}</b></td>
-                        </tr>
-                      `).join("")
-                      : '<tr><td colspan="4">현재 남아 있는 보유 lot가 없습니다.</td></tr>'
-                  }
-                </tbody>
-              </table>
-            </div>
-          </div>
-        `).join("");
+        return;
       }
 
+      dashboard.innerHTML = summaries.map(s => `
+        <div class="ticker-card">
+          <div class="row">
+            <div>
+              <div class="name">${s.ticker}</div>
+              <div class="muted">총매수 ${fmt(s.totalBuyQty)}주 · 총매도 ${fmt(s.totalSellQty)}주 · 현재보유 ${fmt(s.totalQty)}주</div>
+            </div>
+            <div class="big ${holdClass(s.longestHoldDays)}">${s.totalQty ? dPlus(s.longestHoldDays) : "-"}</div>
+          </div>
+
+          <div class="mini-grid">
+            <div class="mini"><div class="k">평균단가</div><div class="v">${won(s.avgPrice)}</div></div>
+            <div class="mini"><div class="k">현재가</div><div class="v">${s.currentPrice ? won(s.currentPrice) : "-"}</div></div>
+            <div class="mini"><div class="k">미실현손익</div><div class="v ${s.unrealizedPnl >= 0 ? "green" : "red"}">${s.currentPrice ? won(s.unrealizedPnl) : "-"}</div></div>
+            <div class="mini"><div class="k">수익률</div><div class="v ${s.unrealizedRate >= 0 ? "green" : "red"}">${s.currentPrice ? pct(s.unrealizedRate) : "-"}</div></div>
+          </div>
+
+          <div class="mini-grid">
+            <div class="mini"><div class="k">목표가</div><div class="v">${s.targetPrice ? won(s.targetPrice) : "-"}</div></div>
+            <div class="mini"><div class="k">손절가</div><div class="v">${s.stopPrice ? won(s.stopPrice) : "-"}</div></div>
+            <div class="mini"><div class="k">평가금액</div><div class="v">${s.currentPrice ? won(s.marketValue) : "-"}</div></div>
+            <div class="mini"><div class="k">상태</div><div class="v ${s.statusClass}">${s.status}</div></div>
+          </div>
+
+          <div class="settings-grid">
+            <div>
+              <label>현재가</label>
+              <input type="number" value="${s.currentPrice || ""}" onchange="updatePref('${s.ticker}','currentPrice',this.value)">
+            </div>
+            <div>
+              <label>목표가</label>
+              <input type="number" value="${s.targetPrice || ""}" onchange="updatePref('${s.ticker}','targetPrice',this.value)">
+            </div>
+            <div>
+              <label>손절가</label>
+              <input type="number" value="${s.stopPrice || ""}" onchange="updatePref('${s.ticker}','stopPrice',this.value)">
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>매수일</th>
+                  <th class="r">매수가</th>
+                  <th class="r">남은수량</th>
+                  <th class="r">오늘 기준 보유일</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${
+                  s.activeLots.length
+                    ? s.activeLots.map(l => `
+                      <tr>
+                        <td>${l.date}</td>
+                        <td class="r">${won(l.price)}</td>
+                        <td class="r">${fmt(l.remainingQty)}주</td>
+                        <td class="r"><span class="${holdClass(l.holdDays)}">${dPlus(l.holdDays)}</span></td>
+                      </tr>
+                    `).join("")
+                    : '<tr><td colspan="4">현재 남아 있는 보유 lot가 없습니다.</td></tr>'
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderRanks(data) {
       const tickerRanks = document.getElementById("tickerRanks");
       tickerRanks.innerHTML = data.tickerRanks.length
         ? data.tickerRanks.map((s, i) => `
@@ -521,7 +665,7 @@
               <div class="name">${s.ticker}</div>
               <div class="muted">보유 ${fmt(s.totalQty)}주 · 평균단가 ${won(s.avgPrice)}</div>
             </div>
-            <div class="big">${dPlus(s.longestHoldDays)}</div>
+            <div class="big ${holdClass(s.longestHoldDays)}">${dPlus(s.longestHoldDays)}</div>
           </div>
         `).join("")
         : '<div class="empty">아직 기록이 없습니다.</div>';
@@ -535,12 +679,42 @@
               <div class="name">${l.ticker}</div>
               <div class="muted">${l.date} · 남은 ${fmt(l.remainingQty)}주 · 매수가 ${won(l.price)}</div>
             </div>
-            <div class="big">${dPlus(l.holdDays)}</div>
+            <div class="big ${holdClass(l.holdDays)}">${dPlus(l.holdDays)}</div>
           </div>
         `).join("")
         : '<div class="empty">아직 기록이 없습니다.</div>';
 
-      const history = [...data.historyRows].sort((a, b) => {
+      const returnRanks = document.getElementById("returnRanks");
+      returnRanks.innerHTML = data.returnRanks.length
+        ? data.returnRanks.map((s, i) => `
+          <div class="rank-item">
+            <div>
+              <div class="muted">#${i + 1}</div>
+              <div class="name">${s.ticker}</div>
+              <div class="muted">현재가 ${won(s.currentPrice)} · 평균단가 ${won(s.avgPrice)}</div>
+            </div>
+            <div class="big ${s.unrealizedRate >= 0 ? "green" : "red"}">${pct(s.unrealizedRate)}</div>
+          </div>
+        `).join("")
+        : '<div class="empty">현재가를 입력한 종목이 없습니다.</div>';
+
+      const pnlRanks = document.getElementById("pnlRanks");
+      pnlRanks.innerHTML = data.pnlRanks.length
+        ? data.pnlRanks.map((s, i) => `
+          <div class="rank-item">
+            <div>
+              <div class="muted">#${i + 1}</div>
+              <div class="name">${s.ticker}</div>
+              <div class="muted">평가금액 ${won(s.marketValue)}</div>
+            </div>
+            <div class="big ${s.unrealizedPnl >= 0 ? "green" : "red"}">${won(s.unrealizedPnl)}</div>
+          </div>
+        `).join("")
+        : '<div class="empty">현재가를 입력한 종목이 없습니다.</div>';
+    }
+
+    function renderHistory(historyRows) {
+      const history = [...historyRows].sort((a, b) => {
         if (a.date !== b.date) return b.date.localeCompare(a.date);
         return (b.createdAt || 0) - (a.createdAt || 0);
       });
@@ -573,6 +747,28 @@
         : '<tr><td colspan="7">아직 기록이 없습니다.</td></tr>';
     }
 
+    function renderMonthly(monthlyRows) {
+      const box = document.getElementById("monthlySummary");
+      box.innerHTML = monthlyRows.length
+        ? monthlyRows.map(row => `
+          <div class="summary-item">
+            <div class="row">
+              <div class="name">${row.month}</div>
+              <div class="${row.pnl >= 0 ? "green" : "red"} big">${won(row.pnl)}</div>
+            </div>
+          </div>
+        `).join("")
+        : '<div class="empty">매도 기록이 없어서 월별 실현손익이 없습니다.</div>';
+    }
+
+    function updatePref(ticker, key, value) {
+      const pref = loadPref();
+      if (!pref[ticker]) pref[ticker] = {};
+      pref[ticker][key] = num(value);
+      savePref(pref);
+      render();
+    }
+
     function clearForm() {
       editingId = null;
       document.getElementById("txType").value = "buy";
@@ -594,7 +790,7 @@
         return;
       }
 
-      const raw = load();
+      const raw = loadTx();
 
       if (editingId) {
         const idx = raw.findIndex(x => x.id === editingId);
@@ -613,20 +809,20 @@
         });
       }
 
-      save(raw);
+      saveTx(raw);
       clearForm();
       render();
       switchPage("dashboard");
     }
 
     function removeItem(id) {
-      const data = load().filter(x => x.id !== id);
-      save(data);
+      const data = loadTx().filter(x => x.id !== id);
+      saveTx(data);
       render();
     }
 
     function editItem(id) {
-      const item = load().find(x => x.id === id);
+      const item = loadTx().find(x => x.id === id);
       if (!item) return;
 
       editingId = id;
@@ -639,10 +835,16 @@
     }
 
     function exportData() {
-      const blob = new Blob([JSON.stringify(load(), null, 2)], { type: "application/json" });
+      const blob = new Blob([
+        JSON.stringify({
+          transactions: loadTx(),
+          preferences: loadPref()
+        }, null, 2)
+      ], { type: "application/json" });
+
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = "stock-holding-data.json";
+      a.download = "stock-holding-ultimate.json";
       a.click();
       URL.revokeObjectURL(a.href);
     }
@@ -651,9 +853,13 @@
       const reader = new FileReader();
       reader.onload = () => {
         try {
-          const data = JSON.parse(String(reader.result || "[]"));
-          if (!Array.isArray(data)) throw new Error();
-          save(data);
+          const parsed = JSON.parse(String(reader.result || "{}"));
+          if (Array.isArray(parsed)) {
+            saveTx(parsed);
+          } else {
+            saveTx(Array.isArray(parsed.transactions) ? parsed.transactions : []);
+            savePref(parsed.preferences && typeof parsed.preferences === "object" ? parsed.preferences : {});
+          }
           render();
           switchPage("dashboard");
           alert("불러오기 완료");
@@ -666,16 +872,24 @@
 
     function applySample() {
       const now = Date.now();
-      const sample = [
+      const sampleTx = [
         { id: uid(), createdAt: now - 6000, type: "buy", ticker: "SK하이닉스", date: "2024-05-30", price: 10000, qty: 1 },
         { id: uid(), createdAt: now - 5000, type: "buy", ticker: "SK하이닉스", date: "2025-12-31", price: 50000, qty: 30 },
         { id: uid(), createdAt: now - 4000, type: "sell", ticker: "SK하이닉스", date: "2026-01-15", price: 55000, qty: 10 },
         { id: uid(), createdAt: now - 3000, type: "buy", ticker: "NVDA", date: "2025-01-10", price: 820, qty: 5 },
+        { id: uid(), createdAt: now - 2500, type: "buy", ticker: "NVDA", date: "2026-03-20", price: 910, qty: 3 },
         { id: uid(), createdAt: now - 2000, type: "buy", ticker: "AAPL", date: "2026-03-01", price: 250000, qty: 2 },
         { id: uid(), createdAt: now - 1000, type: "sell", ticker: "NVDA", date: "2026-04-01", price: 1000, qty: 2 }
       ];
 
-      save(sample);
+      const samplePref = {
+        "SK하이닉스": { currentPrice: 58000, targetPrice: 70000, stopPrice: 52000 },
+        "NVDA": { currentPrice: 980, targetPrice: 1100, stopPrice: 880 },
+        "AAPL": { currentPrice: 270000, targetPrice: 290000, stopPrice: 240000 }
+      };
+
+      saveTx(sampleTx);
+      savePref(samplePref);
       clearForm();
       render();
       switchPage("dashboard");
