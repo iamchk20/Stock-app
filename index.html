@@ -5,14 +5,74 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>주식 보유관리 앱</title>
 <link rel="manifest" href="manifest.json">
+<style>
+body{font-family:sans-serif;background:#f4f6fb;padding:15px}
+.card{background:white;padding:15px;border-radius:12px;margin-bottom:10px}
+input,button{padding:8px;margin:5px}
+</style>
 </head>
 <body>
-<h2>주식 보유관리 앱</h2>
-<p>이 파일은 GitHub 업로드용 최종 PWA 테스트 버전입니다.</p>
+
+<h2>📊 주식 보유관리 앱</h2>
+
+<div class="card">
+<input id="ticker" placeholder="종목">
+<input id="date" type="date">
+<input id="price" type="number" placeholder="가격">
+<input id="qty" type="number" placeholder="수량">
+<button onclick="buy()">매수</button>
+<button onclick="sell()">매도</button>
+</div>
+
+<div class="card">
+<h3>보유 현황</h3>
+<div id="list"></div>
+</div>
+
 <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
+let data = JSON.parse(localStorage.getItem("stock")||"[]");
+document.getElementById("date").value=new Date().toISOString().slice(0,10);
+
+function save(){localStorage.setItem("stock",JSON.stringify(data));}
+
+function days(d){return Math.floor((new Date()-new Date(d))/(1000*60*60*24));}
+
+function buy(){
+let t=ticker.value;
+let d=date.value;
+let p=+price.value;
+let q=+qty.value;
+data.push({type:"buy",t,d,p,q});
+save();render();
 }
+
+function sell(){
+let t=ticker.value;
+let p=+price.value;
+let q=+qty.value;
+
+for(let i=data.length-1;i>=0&&q>0;i--){
+let x=data[i];
+if(x.type=="buy"&&x.t==t&&x.q>0){
+let used=Math.min(x.q,q);
+x.q-=used;
+q-=used;
+}
+}
+save();render();
+}
+
+function render(){
+let html="";
+data.forEach(x=>{
+if(x.q>0){
+html+=`${x.t} ${x.q}주 D+${days(x.d)}<br>`;
+}
+});
+list.innerHTML=html;
+}
+render();
 </script>
+
 </body>
 </html>
