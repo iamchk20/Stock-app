@@ -1,0 +1,9 @@
+{
+  "name": "주식 보유관리",
+  "short_name": "주식앱",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#111827",
+  "icons": []
+}
